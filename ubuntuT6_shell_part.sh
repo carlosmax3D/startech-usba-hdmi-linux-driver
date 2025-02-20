@@ -1,5 +1,7 @@
 #!/bin/sh
-lines=100
+#update vertion
+##Magic Control ryan release on 2025-02-06 for ubuntu22.04.1 LTS Version
+lines=114
 KDIR=$(uname -r)
 if [ "$1" = "uninstall" ]; then
 	echo "uninstall T6evdi"
@@ -38,19 +40,27 @@ if [ "$EXE" != "" ]; then
 	rm  /usr/sbin/T6evdi
 	rm  /usr/sbin/T6contrl
 	rm  /etc/systemd/system/T6evdi.service 
-	rm  /etc/systemd/system/T6poweron.service
+	rm  /etc/systemmake cleand/system/T6poweron.service
 	rm  /etc/systemd/system/T6powerdown.service
 	rm  /lib/modules/$KDIR/kernel/drivers/video/evdi.ko 
 fi
+apt-get update -y
+apt-get -y install gcc
+apt-get -y install make
+apt-get -y install libturbojpeg-dev
+apt-get -y install python3-pybind11
+apt-get -y install python3-dev
 apt-mark hold linux-generic linux-image-generic linux-headers-generic
-apt-get install libdrm-dev libusb-1.0-0-dev libelf-dev
-apt-get install libturbojpeg0-dev build-essential
+apt-get -y install libdrm-dev libusb-1.0-0-dev libelf-dev
+apt-get -y install libturbojpeg0-dev build-essential
 #apt-get install libx11-dev libxrandr-dev libxinerama-dev libpulse-dev libjpeg-turbo8-dev libjpeg8-dev
+apt-get install -y mokutil
 tail -n+$lines $0 >/tmp/packet.tar.gz
 tar zxvf /tmp/packet.tar.gz 
 tar zxvf evdi_t6.tar.gz
 tar zxvf evdi.tar.gz
-cd  evdi
+cd evdi
+make clean
 make
 kmodsign sha256 key.asc cert.der module/evdi.ko
 SECURE=$(mokutil --sb-state |grep enabled)
@@ -61,10 +71,14 @@ fi
 cp module/evdi.ko /lib/modules/$KDIR/kernel/drivers/video/
 cp library/libevdi.so  /usr/lib/
 cp library/libevdi.so  /usr/lib/libevdi.so.0
+cp library/libevdi.so.1  /usr/lib/
+cp library/libevdi.so.1.14.2  /usr/lib/
 cp library/evdi_lib.h /usr/include/
 depmod
 cd ..
 cd evdi_t6_1
+cp turbojpeg.h /usr/include/
+make clean
 make
 cp T6evdi /usr/sbin/
 cp T6contrl /usr/sbin/

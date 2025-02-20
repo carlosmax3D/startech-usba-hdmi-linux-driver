@@ -15,6 +15,14 @@
  * Queue data structures
  */
 
+typedef struct __video_frame {
+	char * buf;
+	int length;
+} VIDEO_FRAME, * PVIDEO_FRAME;
+
+void free_video_frame(PVIDEO_FRAME frame);
+VIDEO_FRAME * allocate_video_frame(int length);
+VIDEO_FRAME * allocate_video_frame2(int length);
 typedef struct queue_element {
 	void* element;
 	struct queue_element *next;
@@ -23,10 +31,9 @@ typedef struct queue_element {
 typedef struct {
 	queue_element_t *first;
 	queue_element_t *last;
-	size_t length;
+	int length;
 	pthread_mutex_t mutex;
 } queue_t;
-
 
 /*
  * queue_create: creates and initializes a new queue
@@ -46,7 +53,7 @@ void releses_queue(queue_t* queue);
  * - queue: the queue to examine
  *   returns: the size of the queue
  */
-size_t queue_length(queue_t *queue);
+int queue_length(queue_t *queue);
 
 /*
  * queue_first: returns a pointer to the first element in the queue
@@ -69,6 +76,6 @@ void queue_add(queue_t *queue, void* element);
  */
 void* queue_remove(queue_t *queue);
 
-
-
 #endif
+
+

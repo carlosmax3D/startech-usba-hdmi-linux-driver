@@ -20,6 +20,7 @@ typedef unsigned short                          WCHAR;
 
 #define PRIMARY_DISPLAY	0
 #define SECONDARY_DISPLAY 1
+#define HW_CURSOR 0
 
 /*
  * Standard requests
@@ -195,6 +196,8 @@ typedef enum
 	T6_CURSOR_ALPHA = 1,
 	T6_CURSOR_MASK_COLOR = 2,
 }T6_CURSOR_TYPE;
+
+#define CURSOR_BITMAP_MAX_SIZE                                   (128*128*4)
 
 typedef struct _USBD_DISPLAY_CURSOR_SHAPE
 {

@@ -5,7 +5,47 @@
 #include <fcntl.h>		/* open */
 #include <sys/ioctl.h>		/* ioctl */
 #include<stdbool.h>
+#include<unistd.h>
 #include "t6usbdongle.h"
+
+static const unsigned char generic_edid[]={
+	//0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x1c, 0xae, 0x73, 0x24, 0x01, 0x01, 0x01, 0x01,
+	0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x34, 0x74, 0x73, 0x24, 0x01, 0x01, 0x01, 0x01,
+	0x32, 0x14, 0x01, 0x03, 0x68, 0x30, 0x1b, 0x78, 0x2a, 0xe6, 0x75, 0xa4, 0x56, 0x4f, 0x9e, 0x27,
+	0x0f, 0x50, 0x54, 0xbf, 0xef, 0x80, 0xb3, 0x00, 0xa9, 0x40, 0x95, 0x00, 0x81, 0x40, 0x81, 0x80,
+	0x95, 0x0f, 0x71, 0x4f, 0x90, 0x40, 0x02, 0x3a, 0x80, 0x18, 0x71, 0x38, 0x2d, 0x40, 0x58, 0x2c,
+	0x45, 0x00, 0xde, 0x0d, 0x11, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00, 0xff, 0x00, 0x31, 0x30, 0x31,
+	0x32, 0x41, 0x32, 0x39, 0x36, 0x30, 0x31, 0x37, 0x39, 0x31, 0x00, 0x00, 0x00, 0xfd, 0x00, 0x37,
+	0x4c, 0x1e, 0x52, 0x11, 0x00, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0xfc,
+	//0x00, 0x47, 0x65, 0x6e, 0x75, 0x69, 0x6e, 0x65, 0x32, 0x31, 0x2e, 0x35, 0x27, 0x27, 0x00, 0x77
+	0x00, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x69, 0x63, 0x32, 0x31, 0x2e, 0x35, 0x27, 0x27, 0x00, 0xa7
+};
+
+unsigned char EDID_4k_bin[] = {
+  0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x34, 0x74, 0x45, 0x10,
+  0x01, 0x00, 0x00, 0x00, 0x0c, 0x22, 0x01, 0x03, 0x80, 0x3d, 0x23, 0x78,
+  0x2a, 0x13, 0x60, 0x97, 0x58, 0x57, 0x91, 0x26, 0x1e, 0x50, 0x54, 0x2d,
+  0xcf, 0x00, 0x71, 0x4f, 0x81, 0x00, 0x81, 0xc0, 0x81, 0x80, 0x95, 0x00,
+  0xa9, 0xc0, 0xb3, 0x00, 0x01, 0x01, 0x04, 0x74, 0x00, 0x30, 0xf2, 0x70,
+  0x5a, 0x80, 0xb0, 0x58, 0x8a, 0x00, 0xde, 0x0d, 0x11, 0x00, 0x00, 0x1e,
+  0x02, 0x3a, 0x80, 0x18, 0x71, 0x38, 0x2d, 0x40, 0x58, 0x2c, 0x45, 0x00,
+  0xde, 0x0d, 0x11, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00, 0xfd, 0x00, 0x1e,
+  0x4b, 0x1e, 0x82, 0x1e, 0x00, 0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+  0x00, 0x00, 0x00, 0xfc, 0x00, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x69, 0x63,
+  0x0a, 0x20, 0x20, 0x20, 0x20, 0x20, 0x01, 0x41, 0x02, 0x03, 0x0a, 0x00,
+  0x65, 0x03, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x7d
+};
+unsigned int EDID_4k_bin_len = 256;
 
 void hex_dump(char *data, int size, char *caption)
 {
@@ -126,7 +166,7 @@ int t6_libusb_get_jpegreset(libusb_device_handle *t6usbdev)
 }
 
 
-int t6_libusb_get_displaysectionheader(libusb_device_handle *t6usbdev)
+int t6_libusb_get_displaysectionheader(libusb_device_handle *t6usbdev, UINT8 *dispcap)
 {
 	int  number = 0 ;
 	int  ret ,usize;
@@ -155,6 +195,9 @@ int t6_libusb_get_displaysectionheader(libusb_device_handle *t6usbdev)
 	printf(" display section DispFunc =%x \n", Dispsecthdr->DispFunc);
 	printf(" Display1Caps.LinkInterfaces =%d \n", Dispsecthdr->Display1Caps.LinkInterfaces);
 	printf(" Display2Caps.LinkInterfaces =%d \n", Dispsecthdr->Display2Caps.LinkInterfaces);
+	
+	*dispcap = Dispsecthdr->Display1Caps.LinkInterfaces & 0x0f | (Dispsecthdr->Display2Caps.LinkInterfaces << 4) & 0xf0;
+	printf("%s: dispcap=%x\n", __func__, *dispcap);
 	if(Dispsecthdr->Display1Caps.LinkInterfaces != 0)
 	    number++;
 	if(Dispsecthdr->Display2Caps.LinkInterfaces != 0)
@@ -208,7 +251,6 @@ int t6_libusb_get_sn(libusb_device_handle* t6usbdev ,char* sn)
     ret = libusb_control_transfer(t6usbdev,0xc0,VENDOR_REQ_GET_VERSION,0,5,sn,8,1000);
     if(ret <= 0)
 		return -1;
-    //printf("ret = %d sn = %s \n",ret,sn);		
 	return 0;
 
 
@@ -258,7 +300,47 @@ int T6CalculatePixelClock( unsigned long ulPixelClock,   unsigned long ulBaseFre
 }
 
 
-int t6_libusb_get_resolution_timing(PT6EVDI t6dev ,int w , int h ,PRESOLUTIONTIMING myres)
+
+//added by LouisTsai 20240315, only return boolean value to verify T6 interface 4K capabilty
+int t6_libusb_get_4K_capbability(PT6EVDI t6dev)
+{
+	int r_number , ret ,usize;
+	int i = 0 , index = -1;
+	
+	unsigned char buffer[4096];
+	PRESOLUTIONTIMING r_table = (PRESOLUTIONTIMING)buffer ;
+	r_number = t6_libusb_get_resolution_num(t6dev);
+	printf("r_number=%d\n", r_number);
+	if(r_number < 0)
+		return -1;
+	
+	usize = r_number * sizeof(RESOLUTIONTIMING);
+	//printf("total size res table =%d \n",usize );
+	//printf("RESOLUTIONTIMING =%d \n",sizeof(RESOLUTIONTIMING) );
+	//r_table = malloc(usize);
+	ret = libusb_control_transfer(t6dev->t6usbdev,0xc0,VENDOR_REQ_GET_RESOLUTION_TIMING_TABLE,t6dev->disp_interface ,0,(char *)r_table,usize,3000);
+	if(ret < 0){
+		//free(r_table);
+		return -1; 
+	}
+	printf("enter %s\n", __func__);
+	for(i = 0 ; i < r_number ; i++){
+		printf("%d: Width = %d , Height = %d , Frequency = %d \n", i,r_table->HorAddrTime,r_table->VerAddrTime,r_table->Frequency);
+		if( r_table->HorAddrTime >= 3840 && r_table->VerAddrTime >= 2160 &&  r_table->Frequency == 30){
+			return 1;
+		}
+		r_table++;
+	}
+	//free(r_table);
+	printf("leave %s\n", __func__);
+	return 0;
+
+	
+	
+}
+
+
+int t6_libusb_get_resolution_timing(PT6EVDI t6dev ,int w , int h, int fps,PRESOLUTIONTIMING myres)
 {
 	int r_number , ret ,usize;
 	int i = 0 , index = -1;
@@ -290,7 +372,7 @@ int t6_libusb_get_resolution_timing(PT6EVDI t6dev ,int w , int h ,PRESOLUTIONTIM
 			 disp_h = w;
 		}
 		
-		if(disp_w== r_table->HorAddrTime && disp_h== r_table->VerAddrTime){
+		if(disp_w== r_table->HorAddrTime && disp_h== r_table->VerAddrTime && fps == r_table->Frequency ){
 			unsigned long N, P, Q, VideoSelect;
 			int cmd = 40;
 			int ver = t6_libusb_get_version(t6dev->t6usbdev,0);
@@ -351,7 +433,29 @@ int t6_libusb_get_monitorstatus(PT6EVDI t6dev) // veiw = 0 hdmi , view =1 vga;
 {
 	int ret = 0 ;
 	char status = 0;
+		
+	int disp0_cap = t6dev->dispcaps & 0x01;
+	int disp1_cap = t6dev->dispcaps>>4 & 0x01;
+	
+	
+	//VGA interface ignore monitor status
+	if(t6dev->disp_interface == 0 && disp0_cap > 0) return 0;
+	if(t6dev->disp_interface == 1 && disp1_cap > 0) return 0;
+	
+	
     ret = libusb_control_transfer(t6dev->t6usbdev,0xc0,VENDOR_REQ_QUERY_MONITOR_CONNECTION_STATUS,t6dev->disp_interface,0,&status,1,1000);
+    if(ret < 0)
+		return -1;
+	//printf("monitor status =%d  ret =%d\n",status,ret);
+	return status;
+
+}
+
+int t6_libusb_get_monitorstatus2(libusb_device_handle *t6usbdev, int disp_interface) // veiw = 0 hdmi , view =1 vga; 
+{
+	int ret = 0 ;
+	char status = 0;
+    ret = libusb_control_transfer(t6usbdev,0xc0,VENDOR_REQ_QUERY_MONITOR_CONNECTION_STATUS, disp_interface,0,&status,1,1000);
     if(ret < 0)
 		return -1;
 	//printf("monitor status =%d  ret =%d\n",status,ret);
@@ -404,6 +508,98 @@ EDID_CheckSum( unsigned char *buf)
 }
 
 
+int EDID_ParseCEAExtensionBlockInformation(
+	unsigned char *pEDIDBuf, 
+	unsigned char IndexOfExtension, 
+	unsigned char *bRun4K30
+);
+												  
+int EDID_ParseDetailDescriptor(
+    unsigned long Index, 
+    unsigned char *pDescriptorBuffer,
+    unsigned char *pMonitorName,
+	unsigned char *bRun4K30
+);
+												  
+int t6_revise_edid(PT6EVDI t6dev, int edid_size, unsigned char *bRun4K30)
+{
+	
+	int usb_speed = t6_libusb_get_linkspeed(t6dev);
+	int ret_edid = edid_size;
+	int i = 0;
+	int disp_w = 0, disp_h = 0, max_disp_w = 0, max_disp_h = 0;
+
+	//Process detailed timing on first 128-bytes
+//Step1, verify Monitor EDID support 4K
+	for(i=0;i<4;i++){
+/*
+		printf("[%x] [%x] = %x %x\n", 0x3a+i*18, 0x38+i*18, t6dev->edid[0x3a+i*18], t6dev->edid[0x38+i*18]);
+		printf("[%x] [%x] = %x %x\n", 0x3d+i*18, 0x3b+i*18, t6dev->edid[0x3d+i*18], t6dev->edid[0x3b+i*18]);
+		
+		
+		disp_w =  (((long) t6dev->edid[0x3a+i*18] << 4) & 0x0f00) + ((long)t6dev->edid[0x38+i*18]&0x00ff);
+		disp_h  = (((long) t6dev->edid[0x3d+i*18] << 4) & 0x0f00) + ((long)t6dev->edid[0x3b+i*18]&0x00ff);
+		if(disp_w >0 && disp_h >0) {
+			max_disp_w = disp_w > max_disp_w ? disp_w :  max_disp_w;
+			max_disp_h = disp_h > max_disp_h ? disp_h :  max_disp_h;
+		}
+		
+		DEBUG_PRINT("disp_w = %d disp_h =%d usb_speed = %d\n",disp_w,disp_h, usb_speed);
+		DEBUG_PRINT("max_disp_w = %d max_disp_h =%d usb_speed = %d\n",max_disp_w,max_disp_h, usb_speed);
+		
+*/
+		EDID_ParseDetailDescriptor(i, (t6dev->edid+0x36)+i*18, "", bRun4K30);
+		//EDID_ParseDetailDescriptor(i, (EDID_4k_bin+0x36)+i*18, "", bRun4K30);
+	}
+	
+	DEBUG_PRINT("1-1.bRun4K30 = %d\n", *bRun4K30);
+	
+	if(edid_size>128){
+		EDID_ParseCEAExtensionBlockInformation((unsigned char*)t6dev->edid, 0, bRun4K30);	
+		//EDID_ParseCEAExtensionBlockInformation((unsigned char*)EDID_4k_bin, 0, bRun4K30);	
+	}
+	
+	//Verify Monitor support 4K here,
+	DEBUG_PRINT("1-2. bRun4K30 = %d\n", *bRun4K30);
+	
+	
+#if 1
+	//verfiy USB Bus 3.0 and HDMI port support 4K
+	if( *bRun4K30 && t6_libusb_get_4K_capbability(t6dev) && (usb_speed >= LIBUSB_SPEED_SUPER)) {
+		memcpy(t6dev->edid, EDID_4k_bin, EDID_4k_bin_len);
+		ret_edid = EDID_4k_bin_len;
+	}
+	else if(*bRun4K30) {//change monitor EDID to limit resolution up to 1080p
+		memcpy(t6dev->edid,generic_edid,128);
+		ret_edid = 128;
+		*bRun4K30 = 0;
+	}
+#else //for 4K monitor test under usb 2.0 
+	if( *bRun4K30 ) {
+		memcpy(t6dev->edid, EDID_4k_bin, EDID_4k_bin_len);
+		ret_edid = EDID_4k_bin_len;
+	}
+
+#endif	
+	
+	return ret_edid;
+}
+
+int t6_vga_force_edid(PT6EVDI t6dev)
+{
+	int disp0_cap = t6dev->dispcaps & 0x01;
+	int disp1_cap = t6dev->dispcaps>>4 & 0x01;
+	
+	DEBUG_PRINT("%s: %d %d %d \n", __func__, disp0_cap, disp1_cap,t6dev->disp_interface);
+	if((t6dev->disp_interface == 0 && (disp0_cap > 0)) || (t6dev->disp_interface == 1 && (disp1_cap > 0))) {
+		memcpy(t6dev->edid,generic_edid,128);
+		DEBUG_PRINT("VGA force to use generic EDID \n");
+		return 128;
+	}else
+		return 0;
+	
+}
+
 int t6_libusb_get_edid(PT6EVDI t6dev )
 {
 	
@@ -419,23 +615,23 @@ int t6_libusb_get_edid(PT6EVDI t6dev )
 		return -1;
 	
 	if(ret < 128)
-		return 0;
+		return t6_vga_force_edid(t6dev);
 	
 	if(EDID_CheckSum(t6dev->edid) != 0){
-		DEBUG_PRINT("EDID_CheckSum error \n");
-		return 0;
+		DEBUG_PRINT("EDID_CheckSum error... \n");
+		return t6_vga_force_edid(t6dev);
 	}
 	
 	if (EDID_Header_Check(t6dev->edid) != 0){
 		DEBUG_PRINT("EDID_Header_Check error \n");
-		return 0;
+		return t6_vga_force_edid(t6dev);;
 	}
 	
 	if (EDID_Version_Check(t6dev->edid) != 0){
 		DEBUG_PRINT("EDID_Version_Check error \n");
-		return 0;
+		return t6_vga_force_edid(t6dev);;
 	}
-	//hex_dump(t6dev->edid,edid_size,"EDID1");	
+	hex_dump(t6dev->edid,edid_size,"EDID1");	
 
 	ucExtendEDID = t6dev->edid[126];
 	if (ucExtendEDID > 0)	{//extended EDID
@@ -449,8 +645,8 @@ int t6_libusb_get_edid(PT6EVDI t6dev )
 	}
 	
 
-	
-	//hex_dump(t6dev->edid,edid_size,"EDID2");		
+	hex_dump(t6dev->edid,edid_size,"EDID2");		
+	DEBUG_PRINT("\n\n%s: extend edid count = %d\n", __func__, ucExtendEDID);
 	return edid_size;
 }
 
@@ -513,12 +709,12 @@ int  t6_libusb_set_softready(PT6EVDI t6dev)
 }
 
 
-int  t6_libusb_set_resolution(PT6EVDI t6dev, int w,int h)
+int  t6_libusb_set_resolution(PT6EVDI t6dev, int w,int h, int fps)
 {
 	int ret;
 	RESOLUTIONTIMING myres;
 	
-	if(t6_libusb_get_resolution_timing(t6dev,w,h,&myres) <0 ){
+	if(t6_libusb_get_resolution_timing(t6dev,w,h,fps,&myres) <0 ){
 		printf(" t6_libusb_get_resolution_timing failed 1\n");
 		return -1;
 	}
@@ -621,6 +817,158 @@ int t6_libusb_Rgb24_full_block(PT6EVDI t6dev ,int fbaddr )
 
 }
 
+
+//Note Here, YV12 will user zero copy , so nv12image buffer reserve 48 bytes header space at the front
+//It allocate in other function, cannot be free here
+int t6_libusb_FilpYV12Frame(PT6EVDI t6dev,unsigned char *yv12image ,int yv12size,int flag)
+{
+    int ret = 0 ;
+	int transferred = 0;
+	int len = yv12size + 48 + 1024;
+
+	int VideoDataSize = len -48 ;
+	UINT16 Width = t6dev->Width ;
+	UINT16 Height = t6dev->Height;	
+	UINT16 Y_Pitch;
+    UINT32 U_StartOffset;
+    UINT32 V_StartOffset;
+    UINT16 UV_Pitch;
+	unsigned char *videobuf = yv12image;
+	
+//printf("%s: yv12size = %d buff=%x\n", __func__, yv12size, yv12image);	
+	
+	if(t6dev->jpg_rotate == 1 || t6dev->jpg_rotate == 3){
+		Width =  t6dev->Height;
+		Height = t6dev->Width ;
+    }
+	
+	
+	Y_Pitch = (UINT16)(((Width + 15) / 16) * 16);
+    UV_Pitch = (UINT16)(((Width/2 + 15) / 16) * 16);
+    U_StartOffset = Y_Pitch*Height;
+    V_StartOffset = U_StartOffset + (UV_Pitch*Height/2);;
+	//V_StartOffset= 0;
+
+//printf("%s: %d %d %d %d\n", __func__, Y_Pitch, UV_Pitch, U_StartOffset, V_StartOffset);
+
+	BULK_CMD_HEADER bch ;
+	memset(&bch,0,sizeof(BULK_CMD_HEADER));
+	bch.Signature = 0 ;
+	bch.PayloadLength =  len ;
+	bch.PayloadAddress = t6dev->fbAddr;
+	bch.PacketLength  = bch.PayloadLength;
+	ret = libusb_bulk_transfer(t6dev->t6usbdev, EP_BLK_OUT_ADDR,(UINT8 *)&bch, 32, &transferred, 5000);
+    if(ret < 0){
+		printf("bulk out failed 32 =%d \n",ret);
+		return -1;
+    }
+	//
+	PVIDEO_FLIP_HEADER vfh = (PVIDEO_FLIP_HEADER)(videobuf);
+    memset(videobuf,0,sizeof(VIDEO_FLIP_HEADER)) ;
+	if(t6dev->disp_interface  == 0)
+		vfh->Command = VIDEO_CMD_FLIP_PRIMARY;
+	if(t6dev->disp_interface  == 1)
+		vfh->Command = VIDEO_CMD_FLIP_SECONDARY;
+	vfh->FenceID = 0 ;
+	vfh->TargetFormat = VIDEO_COLOR_YV12;
+	vfh->Y_RGB_Pitch  = Y_Pitch;
+	vfh->UV_Pitch     = UV_Pitch;
+	vfh->Y_RGB_Data_FB_Offset = t6dev->fbAddr + sizeof(VIDEO_FLIP_HEADER);
+	vfh->U_UV_Data_Offset = vfh->Y_RGB_Data_FB_Offset + U_StartOffset;
+	vfh->V_Data_Offset    = vfh->Y_RGB_Data_FB_Offset + V_StartOffset;
+	vfh->Flag = flag;
+	vfh->SourceFormat = VIDEO_COLOR_YV12;
+	vfh->PayloadSize = VideoDataSize ;
+
+//printf("%s: %x\n",__func__,t6dev->fbAddr);
+	
+	
+	//hex_dump(videobuf-48, 64, "NV12");
+	
+	ret = libusb_bulk_transfer(t6dev->t6usbdev, EP_BLK_OUT_ADDR, videobuf, len, &transferred, 5000);
+    if(ret < 0){
+		printf("bulk out failed 3 =%d \n",ret);
+		t6_libusb_donglereset(t6dev);
+		return -1;
+    }
+	return 0;
+
+}
+
+//Note Here, YV12 will user zero copy , so nv12image buffer reserve 48 bytes header space at the front
+//It allocate in other function, cannot be free here
+int t6_libusb_FilpNV12Frame(PT6EVDI t6dev,unsigned char *nv12image ,int nv12size,int flag)
+{
+    int ret = 0 ;
+	int transferred = 0;
+	int len = nv12size + 48 + 1024;
+
+	int VideoDataSize = len -48 ;
+	UINT16 Width = t6dev->Width ;
+	UINT16 Height = t6dev->Height;	
+	UINT16 Y_Pitch;
+    UINT32 U_StartOffset;
+    UINT32 V_StartOffset;
+    UINT16 UV_Pitch;
+	unsigned char *videobuf = nv12image;
+	
+printf("%s: nv12size = %d buff=%hhn\n", __func__, nv12size, nv12image);	
+	
+	if(t6dev->jpg_rotate == 1 || t6dev->jpg_rotate == 3){
+		Width =  t6dev->Height;
+		Height = t6dev->Width ;
+    }
+	
+	
+	Y_Pitch = (UINT16)(((Width + 15) / 16) * 16);
+    UV_Pitch = (UINT16)(((Width+ 15) / 16) * 16);
+    U_StartOffset = Y_Pitch*Height;
+	V_StartOffset= 0;
+
+printf("%s: %d %d %d %d\n", __func__, Y_Pitch, UV_Pitch, U_StartOffset, V_StartOffset);
+
+	BULK_CMD_HEADER bch ;
+	memset(&bch,0,sizeof(BULK_CMD_HEADER));
+	bch.Signature = 0 ;
+	bch.PayloadLength =  len ;
+	bch.PayloadAddress = t6dev->fbAddr;
+	bch.PacketLength  = bch.PayloadLength;
+	ret = libusb_bulk_transfer(t6dev->t6usbdev, EP_BLK_OUT_ADDR,(UINT8 *)&bch, 32, &transferred, 5000);
+    if(ret < 0){
+		printf("bulk out failed 32 =%d \n",ret);
+		return -1;
+    }
+	//
+	PVIDEO_FLIP_HEADER vfh = (PVIDEO_FLIP_HEADER)(videobuf);
+    memset(videobuf,0,sizeof(VIDEO_FLIP_HEADER)) ;
+	if(t6dev->disp_interface  == 0)
+		vfh->Command = VIDEO_CMD_FLIP_PRIMARY;
+	if(t6dev->disp_interface  == 1)
+		vfh->Command = VIDEO_CMD_FLIP_SECONDARY;
+	vfh->FenceID = 0 ;
+	vfh->TargetFormat = VIDEO_COLOR_NV12;
+	vfh->Y_RGB_Pitch  = Y_Pitch;
+	vfh->UV_Pitch     = UV_Pitch;
+	vfh->Y_RGB_Data_FB_Offset = t6dev->fbAddr + sizeof(VIDEO_FLIP_HEADER);
+	vfh->U_UV_Data_Offset = vfh->Y_RGB_Data_FB_Offset + U_StartOffset;
+	vfh->V_Data_Offset    = vfh->Y_RGB_Data_FB_Offset + V_StartOffset;
+	vfh->Flag = flag;
+	vfh->SourceFormat = VIDEO_COLOR_NV12;
+	vfh->PayloadSize = VideoDataSize ;
+	
+	
+	//hex_dump(videobuf-48, 64, "NV12");
+	
+	ret = libusb_bulk_transfer(t6dev->t6usbdev, EP_BLK_OUT_ADDR, videobuf, len, &transferred, 5000);
+    if(ret < 0){
+		printf("bulk out failed 3 =%d \n",ret);
+		t6_libusb_donglereset(t6dev);
+		return -1;
+    }
+	return 0;
+
+}
+
 int t6_libusb_FilpJpegFrame(PT6EVDI t6dev,char *jpgimage ,int jpgsize,int flag)
 {
     int ret = 0 ;
@@ -715,11 +1063,40 @@ int t6_libusb_get_interrupt(PT6EVDI t6dev,char * data , int len )
   ret = libusb_interrupt_transfer(t6dev->t6usbdev,EP_INT_IN_ADDR,data,len,&transferred,5000);  
   if(ret < 0){	
 	printf("interrupt  failed 1 =%d \n",ret);	
-	return -1;
+	return ret;
   }
   return 0 ;	
 
 }
+
+int t6_libusb_get_interrupt3(libusb_device_handle *t6usbdev,char * data , int len )
+{
+  int ret = 0;
+  int transferred = 0;
+  ret = libusb_interrupt_transfer(t6usbdev,EP_INT_IN_ADDR,data,len,&transferred,0);  
+  if(ret < 0){	
+	printf("interrupt  failed 3 =%d \n",ret);	
+	return ret;
+  }
+  return 0 ;	
+
+}
+
+/*
+t6_libusb_get_linkspeed return value 
+
+LIBUSB_SPEED_UNKNOWN        //The OS doesn't report or know the device speed.
+LIBUSB_SPEED_LOW 	        //The device is operating at low speed (1.5MBit/s).
+LIBUSB_SPEED_FULL 	        //The device is operating at full speed (12MBit/s).
+LIBUSB_SPEED_HIGH 	        //The device is operating at high speed (480MBit/s).
+LIBUSB_SPEED_SUPER 	        //The device is operating at super speed (5000MBit/s).
+LIBUSB_SPEED_SUPER_PLUS 	//The device is operating at super speed plus (10000MBit/s).
+*/
+int t6_libusb_get_linkspeed(PT6EVDI t6dev)
+{
+	return libusb_get_device_speed(libusb_get_device(t6dev->t6usbdev));	
+}
+
 
 int t6_libusb_get_touch(libusb_device_handle* t6usbdev)
 {
@@ -869,6 +1246,65 @@ int t6_libusb_set_monitor_power2(libusb_device_handle* t6usbdev ,char on)
 
 }
 
+int t6_set_cousor_image(libusb_device_handle* t6usbdev,char* src_format  ,int len ,int index )
+{
+
+	int ret;
+    
+	char* img = (char*)src_format;
+    int pagelen = len ;
+
+	int page = pagelen / 512 ;
+	int pagenumber = pagelen % 512 ;
+	int offset = 0 ;
+	//t6_save_file(src_format+8,len-8);
+	while(page > 0){
+		ret = libusb_control_transfer( t6usbdev,0x40,VENDOR_REQ_SET_CURSOR1_SHAPE,index,offset,img+offset,512,100);
+		if(ret < 0){
+			printf("libusb_control_transfer failed %d\n",ret);
+			break;
+		}
+		offset += 512;
+		page--;
+	}
+
+	if(pagenumber > 0){
+		ret = libusb_control_transfer(t6usbdev,0x40,VENDOR_REQ_SET_CURSOR1_SHAPE,index,offset,img+offset,pagenumber,100);
+	}
+
+
+	
+	
+	if(ret < 0){
+		printf("libusb_control_transfer failed %d\n",ret);
+		return -1;
+	}
+	return 0;
+
+}
+
+int t6_set_cousor_onoff(libusb_device_handle* t6usbdev,int on ,int index)
+{
+
+	int ret;
+	ret = libusb_control_transfer(t6usbdev,0x40,VENDOR_REQ_SET_CURSOR1_STATE,index ,on,NULL,0,500);
+	if(ret < 0)
+		return -1; 
+	return 0;
+
+}
+
+int t6_set_cousor_pos(libusb_device_handle* t6usbdev,int x ,int y)
+{
+
+	int ret;
+	ret = libusb_control_transfer(t6usbdev,0x40,VENDOR_REQ_SET_CURSOR1_POS,x ,y,NULL,0,500);
+	if(ret < 0)
+		return -1; 
+	return 0;
+
+}
+
 
 int t6_write_rom_date(libusb_device_handle* t6usbdev,char *buf ,int len)
 {
@@ -914,15 +1350,120 @@ int t6_libusb_get_interrupt2(libusb_device_handle* t6usbdev,char * data , int le
 {
 	  int ret = 0;
 	  int transferred = 0;
-	  ret = libusb_interrupt_transfer(t6usbdev,EP_INT_IN_ADDR,data,len,&transferred,5000);  
+	  ret = libusb_interrupt_transfer(t6usbdev,EP_INT_IN_ADDR,data,len,&transferred, 5000);  
 	  if(ret < 0){	
-		printf("interrupt  failed 1 =%d \n",ret);	
+		printf("interrupt  failed ttt =%d \n",ret);	
 		return -1;
 	  }
 	  return 0 ;	
 
 }
 
+
+#define MAX_CTRL_TX_SIZE	4096
+
+int t6_libusb_set_cursor_shape(libusb_device_handle* t6usbdev, int cur_idx, int disp_no, int w, int h, unsigned char * data , int len)
+{
+	
+	int ret;
+	unsigned char bRequest;
+	unsigned char *t6_cursor_data;
+	USBD_DISPLAY_CURSOR_SHAPE *header;
+	int total_len = sizeof(USBD_DISPLAY_CURSOR_SHAPE)+len;
+	int tx_len = 0, tx_offset = 0;
+	
+	
+	
+	t6_cursor_data = (unsigned char*) malloc(total_len);
+	if(t6_cursor_data != NULL) {
+		
+		header = (USBD_DISPLAY_CURSOR_SHAPE*)t6_cursor_data;
+		
+		header->CursorType  = 1;//ARGB
+		header->Width 		= w;
+		header->Height      = h;
+		header->Pitch		= w*4;
+		
+		memcpy(t6_cursor_data+sizeof(USBD_DISPLAY_CURSOR_SHAPE), data, len);
+		
+		if(disp_no == 0) 
+			bRequest = VENDOR_REQ_SET_CURSOR1_SHAPE;
+		else
+			bRequest = VENDOR_REQ_SET_CURSOR2_SHAPE;
+
+	
+		do{
+			if(total_len-tx_offset >= MAX_CTRL_TX_SIZE)
+				tx_len = MAX_CTRL_TX_SIZE;
+			else
+				tx_len = total_len-tx_offset;
+			ret = libusb_control_transfer(t6usbdev, 0x40, bRequest, cur_idx , tx_offset, t6_cursor_data+tx_offset, tx_len, 3000);
+			if(ret<0) break;
+			tx_offset += tx_len;
+		}while(tx_offset<total_len);
+		
+		
+		free(t6_cursor_data);
+		if(ret < 0)
+			return -1; 
+		return 0;
+	}else
+		return -1;
+	
+	
+}
+
+int t6_libusb_set_cursor_postion(libusb_device_handle* t6usbdev, int x, int y, int disp_no)
+{
+	
+	int ret;
+	unsigned short xPos = 0, yPos = 0;
+	unsigned char bRequest;
+	
+	
+	if (x <0)
+		xPos = ~((unsigned short) (0 - x));
+	else
+		xPos = (unsigned short)x;
+	
+	
+	if (y <0)
+		yPos = ~((unsigned short) (0 - y));
+	else
+		yPos = (unsigned short)y;
+	
+	
+	if(disp_no == 0)
+		bRequest = VENDOR_REQ_SET_CURSOR1_POS;
+	else
+		bRequest = VENDOR_REQ_SET_CURSOR2_POS;
+	
+	ret = libusb_control_transfer(t6usbdev, 0x40, bRequest, xPos , yPos, NULL, 0, 3000);
+	
+	if(ret < 0)
+		return -1; 
+	return 0;
+	
+}
+
+int t6_libusb_set_cursor_state(libusb_device_handle* t6usbdev, int cur_idx, int disp_no, int enable)
+{
+	
+	int ret;
+	unsigned char bRequest;
+	
+	if(disp_no == 0)
+		bRequest = VENDOR_REQ_SET_CURSOR1_STATE;
+	else
+		bRequest = VENDOR_REQ_SET_CURSOR2_STATE;
+	
+	ret = libusb_control_transfer(t6usbdev, 0x40, bRequest, cur_idx , enable, NULL, 0, 3000);
+	
+	if(ret < 0)
+		return -1; 
+	return 0;
+	
+}
 
 
 void ShowRomMsg(libusb_device_handle* t6usbdev)
