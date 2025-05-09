@@ -1,7 +1,7 @@
 #!/bin/sh
 #update vertion
-##Magic Control ryan release on 2025-02-06 for ubuntu22.04.1 LTS Version
-lines=114
+#Magic Control ryan release on 2025-02-07 for ubuntu24.04.1 LTS Version ïŒmake 4.3-4.1ïŒgcc4:13.2.0-7
+lines=115
 KDIR=$(uname -r)
 if [ "$1" = "uninstall" ]; then
 	echo "uninstall T6evdi"
@@ -45,6 +45,7 @@ if [ "$EXE" != "" ]; then
 	rm  /lib/modules/$KDIR/kernel/drivers/video/evdi.ko 
 fi
 apt-get update -y
+apt-get -y install gcc-12
 apt-get -y install gcc
 apt-get -y install make
 apt-get -y install libturbojpeg-dev

@@ -294,16 +294,12 @@ int pullaudio_buffer(char *audiobuffer)
 
 #endif
 
-int validateIdProduct(uint16_t id){
-    return (id == 0x5600 || id == 0x5601 || id == 0x5621 || id == 0x5609 || id == 0x560b || id == 0x562b);
-}
-
 int is_T6dev(libusb_device *dev) {
     struct libusb_device_descriptor desc;
     int rc = libusb_get_device_descriptor(dev, &desc);
     // DEBUG_PRINT("VID = %x PID =%x \n", desc.idVendor,  desc.idProduct);
 
-    if (LIBUSB_SUCCESS == rc && desc.idVendor == 0x0711 && validateIdProduct(desc.idProduct & 0xff00))
+    if (LIBUSB_SUCCESS == rc && desc.idVendor == 0x0711 && (desc.idProduct & 0xff00) == 0x5600)
         return 1;
     else if (LIBUSB_SUCCESS == rc && desc.idVendor == 0x03f0 && desc.idProduct == 0x0182)
         return 1;
@@ -1484,7 +1480,7 @@ void *evdi_process(void *userdata) {
     pthread_t pthr_cursor, pthr_cursor_p, pthr_usb, pthr_audio, pthr_int, pthr_mode;
     pthread_attr_t attr1;
     struct sched_param param;
-    DEBUG_PRINT("evdi_process id = %d \n", pt6evdi->display_id);
+    //DEBUG_PRINT("evdi_process id = %d \n", pt6evdi->display_id);
 
     evdi_mutex_lock(pt6evdi->lock);
     pt6evdi->ramsize = t6_libusb_get_ram_size(pt6evdi);
@@ -1505,7 +1501,7 @@ void *evdi_process(void *userdata) {
             break;
         }
 
-        DEBUG_PRINT("edid edid_size = %d \n", edid_size);
+        //DEBUG_PRINT("edid edid_size = %d \n", edid_size);
         evdi_mutex_unlock(pt6evdi->lock);
         if (edid_size > 0 || edid_size < 0)
             break;
@@ -1530,7 +1526,7 @@ void *evdi_process(void *userdata) {
     pt6evdi->bRun4K30 = bRun4K30;
     evdi_mutex_unlock(pt6evdi->lock);
 
-    printf("(1)edid_size = %d, bRun4K30 = %d\n", edid_size, pt6evdi->bRun4K30);
+    //printf("(1)edid_size = %d, bRun4K30 = %d\n", edid_size, pt6evdi->bRun4K30);
 
     /*
         int disp_w = ((((long) pt6evdi->edid[0x3a] << 4) & 0x0f00) + ((long)pt6evdi->edid[0x38]&0x00ff));
@@ -1709,7 +1705,7 @@ void *evdi_process(void *userdata) {
                                 tjCompress2(jpegCompressor, pt6evdi->video_buffer, pt6evdi->Width, 0, pt6evdi->Height, TJPF_BGRA,
                                             (unsigned char **)&jpgImage, &jpgImageSize, TJSAMP_420, 95, TJFLAG_FASTDCT);
 
-                            DEBUG_PRINT("%s: jpgsize = %ld \n", __func__, jpgImageSize);
+                            //DEBUG_PRINT("%s: jpgsize = %ld \n", __func__, jpgImageSize);
 
                         } else {
                             jpgImageSize = pt6evdi->Width * pt6evdi->Height * 3 / 2;
@@ -1967,7 +1963,7 @@ static void EnumT6Device() {
     libusb_device *T6dev = NULL;
     libusb_device_handle *t6usbdev = NULL;
 
-    DEBUG_PRINT("ENTER %s\n", __FUNCTION__);
+    //DEBUG_PRINT("ENTER %s\n", __FUNCTION__);
     cnt = libusb_get_device_list(ctx, &list);
 
     // find T6 device
@@ -1979,7 +1975,7 @@ static void EnumT6Device() {
             ret = libusb_open(device, &t6usbdev);
 
             if (ret != 0) {
-                DEBUG_PRINT("T6:  libusb_open failed\n");
+                //DEBUG_PRINT("T6:  libusb_open failed\n");
                 continue;
             }
 
@@ -1992,7 +1988,7 @@ static void EnumT6Device() {
                 }
             */
             if ((ret = libusb_claim_interface(t6usbdev, 0)) != 0) {
-                DEBUG_PRINT("T6: %s: libusb_claim_interface 0 failed(%s)\n", __func__, libusb_strerror(ret));
+                //DEBUG_PRINT("T6: %s: libusb_claim_interface 0 failed(%s)\n", __func__, libusb_strerror(ret));
                 libusb_close(t6usbdev);
                 continue;
             }
